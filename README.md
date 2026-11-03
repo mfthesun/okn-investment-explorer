@@ -97,7 +97,7 @@ python -m playwright install chromium
 python scripts/browser_check.py
 ```
 
-Можно указать установленный Chrome переменной `BROWSER_EXECUTABLE`. CI проверяет ядро и исходные команды на Python 3.10/3.12/3.14. [Фактические локальные проверки](docs/verification.md) отделены от еще не выполненного удаленного CI.
+Можно указать установленный Chrome переменной `BROWSER_EXECUTABLE`. CI проверяет ядро и исходные команды на Python 3.10/3.12/3.14. [Фактические локальные проверки](docs/verification.md) дополнены [проверками GitHub Actions](https://github.com/mfthesun/okn-investment-explorer/actions).
 
 Карта PNG: `pip install -r requirements-map.txt`, затем `python scripts/render_map.py` или выполнение ячейки ноутбука. Эти зависимости приложению не нужны.
 

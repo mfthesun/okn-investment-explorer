@@ -41,9 +41,13 @@ class ScenariosTest(unittest.TestCase):
         for cost, values in expected.items():
             p = s.defaults()
             p.update(mode="experiment", cost=cost)
-            self.assertEqual(
-                [round(s.calculate(o, p)["iip"], 3) for o in s.objects()], values
-            )
+            # Published values have three decimals. Python 3.12 changed float
+            # summation; a half-way value can round either way across versions.
+            for obj, reported in zip(s.objects(), values):
+                with self.subTest(cost=cost, object_id=obj["id"]):
+                    self.assertAlmostEqual(
+                        s.calculate(obj, p)["iip"], reported, delta=0.000500000001
+                    )
 
     def test_independence(self):
         objs = s.objects()
