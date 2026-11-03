@@ -44,7 +44,7 @@ class ScenariosTest(unittest.TestCase):
             # Published values have three decimals. Python 3.12 changed float
             # summation; a half-way value can round either way across versions.
             for obj, reported in zip(s.objects(), values):
-                with self.subTest(cost=cost, object_id=obj["id"]):
+                with self.subTest(cost=cost, reported=reported):
                     self.assertAlmostEqual(
                         s.calculate(obj, p)["iip"], reported, delta=0.000500000001
                     )
