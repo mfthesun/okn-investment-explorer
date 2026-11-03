@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ОКН.Индекс — практика 3</title>
+    <link rel="stylesheet" href="/vendor/leaflet.css" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/">ОКН<span>.Индекс</span></a
+      ><span>НИР2 → эксперимент НИР3</span
+      ><span class="badge">Расчёты локально · карта онлайн/офлайн</span>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">ПРАКТИКА 03 / ЦИФРОВАЯ УРБАНИСТИКА</p>
+          <h1>Сравнивать объекты.<br />Понимать различия.</h1>
+          <p>
+            Четыре объекта культурного наследия Санкт-Петербурга.<br />От
+            исходных данных — к объяснимому относительному рейтингу.
+          </p>
+        </div>
+        <aside class="notice">
+          ИИП — результат модели, а не прогноз доходности или инвестиционная
+          рекомендация. Стоимость и доход условны. Показатель поддержки 3.5
+          воспроизводит допущение НИР2 и не подтверждает доступность программы
+          сегодня.
+        </aside>
+      </section>
+      <div id="error" role="alert" hidden></div>
+      <div id="status" role="status" aria-live="polite"></div>
+      <div class="layout">
+        <aside class="panel controls">
+          <h2>Параметры сценария</h2>
+          <label
+            >Название<input
+              id="name"
+              value="Мой сценарий"
+              maxlength="120" /></label
+          ><label
+            >Режим<select id="mode">
+              <option value="nir2">Воспроизведение НИР2</option>
+              <option value="experiment">Экспериментальный профиль</option>
+            </select></label
+          >
+          <label
+            >Базовая стоимость, тыс. ₽/м²<input
+              id="cost"
+              type="number"
+              min="1"
+              max="1000"
+              step="1"
+              value="100" /></label
+          ><label
+            >Множитель условного дохода<input
+              id="revenue"
+              type="number"
+              min="0"
+              max="5"
+              step="0.1"
+              value="1"
+          /></label>
+          <p class="hint">
+            1 = исходные 6–12 тыс. ₽/м² в год по объектам. Ноль — отсутствие
+            окупаемости.
+          </p>
+          <details open>
+            <summary>Веса групп · сумма = 1</summary>
+            <div id="weights"></div>
+            <p id="weightSum" class="hint"></p>
+          </details>
+          <details>
+            <summary>Пользовательские ограничения</summary>
+            <p class="hint">
+              Личные параметры отбора, не готовый профиль малого или крупного
+              инвестора.
+            </p>
+            <label
+              >Предел CAPEX, млн ₽ (необязательно)<input
+                id="budget"
+                type="number"
+                min="0" /></label
+            ><label
+              >Площадь от, м²<input
+                id="minArea"
+                type="number"
+                min="0"
+                value="0" /></label
+            ><label
+              >Площадь до, м² (необязательно)<input
+                id="maxArea"
+                type="number"
+                min="0"
+            /></label>
+          </details>
+          <button id="run" class="primary">Рассчитать и сохранить</button
+          ><button id="auto">Ранжировать выбранные объекты</button
+          ><button id="reset">Сбросить к базе</button>
+          <hr />
+          <h3>Демонстрационные сценарии</h3>
+          <p class="hint">
+            Обоснованы до поиска. Выбор кнопки только заполняет параметры;
+            расчет — отдельным действием.
+          </p>
+          <button id="scenarioA">А · стоимость ×1,5</button
+          ><button id="scenarioB">Б · приоритет правовых рисков</button>
+          <p class="hint">
+            А: проверка превышения условной стоимости.<br />Б: перенос 0,15 веса
+            из G1 в G2. Это предпочтение пользователя, не экспертный норматив.
+          </p>
+        </aside>
+        <div class="content">
+          <section class="panel">
+            <div class="section-title">
+              <h2>Каталог и рейтинг</h2>
+              <span class="badge">4 пилотных объекта</span>
+            </div>
+            <div class="toolbar">
+              <label
+                >Найти объект<input
+                  id="search"
+                  placeholder="Название, адрес или номер" /></label
+              ><label
+                >Категория<select id="category">
+                  <option value="">Все</option>
+                  <option value="regional">Региональная</option>
+                  <option value="federal">Федеральная</option>
+                </select></label
+              >
+            </div>
+            <p class="hint">
+              Поиск скрывает строки каталога, но не снимает выбор. Отмеченные
+              объекты входят в расчет.
+            </p>
+            <div id="catalog"></div>
+            <p class="photo-source hint">
+              Источник фотографий:
+              <a href="https://наследие.дом.рф/" target="_blank" rel="noopener"
+                >платформа «Наследие» ДОМ.РФ</a
+              >.
+            </p>
+            <div id="metrics" class="metrics"></div>
+            <p id="criterion"></p>
+            <div id="ranking" class="scroll"></div>
+            <p id="excluded"></p>
+            <div class="toolbar">
+              <button id="json">Экспорт запуска JSON</button
+              ><button id="csv">Экспорт таблицы CSV</button>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="section-title">
+              <h2>Карточка объекта</h2>
+              <select id="object" aria-label="Объект для карточки"></select>
+            </div>
+            <div id="card"></div>
+            <button id="manual">Проверить ручным расчетом</button>
+            <p id="manualResult" role="status"></p>
+          </section>
+          <section class="panel">
+            <div class="section-title">
+              <h2>Расположение объектов</h2>
+              <select id="mapMode" aria-label="Режим карты">
+                <option value="scenario">Сценарий</option>
+                <option value="base">База</option>
+                <option value="delta">Изменение</option>
+              </select>
+            </div>
+            <div class="toolbar">
+              <label
+                >Подложка<select id="basemap">
+                  <option value="esri">Esri · топографическая (онлайн)</option>
+                  <option value="offline">Без подложки · офлайн</option>
+                </select></label
+              >
+              <button id="fitMap">Показать все объекты</button>
+            </div>
+            <p id="mapStatus" class="hint" role="status"></p>
+            <div id="map">
+              <div
+                id="mapCanvas"
+                aria-label="Интерактивная карта объектов"
+              ></div>
+              <div id="mapLegend" class="map-legend"></div>
+            </div>
+            <p class="hint">
+              Подложка Esri требует интернета; без нее точки и расчеты доступны
+              офлайн. Координаты из сохраненной реестровой выгрузки;
+              сопоставлены по ЕГРОКН и проверены на допустимый диапазон.
+              Геодезическая точность не подтверждена. Источник:
+              data/raw/dataset.xlsx, срез НИР2.
+            </p>
+          </section>
+          <section class="panel" id="comparisonSection">
+            <h2>Сохраненные сценарии</h2>
+            <p class="hint">
+              Сравниваются значения одного объекта в разных запусках. «—»
+              означает исключение, а не нулевой индекс. Первые 8 выбранных
+              запусков.
+            </p>
+            <div id="saved"></div>
+            <div id="comparison" class="scroll"></div>
+            <div id="comparisonChart"></div>
+          </section>
+          <section class="panel">
+            <h2>Устойчивость к выбору весов</h2>
+            <p>
+              1000 возмущений весов на ±25% с нормированием суммы к 1. Зерно
+              20261103. Исходные характеристики и локальные веса постоянны.
+            </p>
+            <button id="stability">Запустить эксперимент</button>
+            <div id="stabilityResult"></div>
+            <button id="stabilityExport" hidden>Экспорт всех повторов</button>
+            <p class="hint">
+              Частота первого места относится только к заданному искусственному
+              распределению весов. Это не вероятность успеха инвестиции и не
+              эмпирическая валидация.
+            </p>
+          </section>
+          <section class="panel">
+            <h2>Границы результата</h2>
+            <p>
+              В массиве 156 записей, 141 проходит фильтр применимости. Полный
+              набор показателей подготовлен только для четырех пилотных
+              объектов. Поиск по всему массиву не выполняется.
+            </p>
+            <p>
+              Даты актов указаны в карточках. Точная дата общего среза не
+              задана; давность сведений сохранена как в НИР2, автоматически на
+              сегодня не обновляется. CAPEX не включает проверенную рыночную
+              смету; простой PP не учитывает дисконтирование и операционные
+              расходы.
+            </p>
+            <p>
+              Профили инвесторов, функции приспособления, проверка актуальных
+              льгот и ретроспективная валидация — дальнейшая работа НИР3.
+            </p>
+            <details>
+              <summary>Версии и воспроизводимость</summary>
+              <pre id="provenance"></pre>
+            </details>
+          </section>
+        </div>
+      </div>
+      <footer>
+        Денис Яковлев · ИТМО, ИДУ · C4207 · 2026<br />Код — MIT. Справочники,
+        данные и результаты — CC BY 4.0.
+      </footer>
+    </main>
+    <script src="/vendor/leaflet.js"></script>
+    <script src="/map.js"></script>
+    <script src="/ui.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "490": {
+    "file": "app/photos/490.webp",
+    "original_filename": "Челищева.webp",
+    "source_name": "Платформа «Наследие» ДОМ.РФ",
+    "source_url": "https://наследие.дом.рф/",
+    "source_statement": "Источник указан пользователем; соответствие объекту задано именем файла.",
+    "author": null,
+    "date_taken": null,
+    "license": "Права на фотографии не входят в MIT/CC BY проекта.",
+    "sha256": "fb0c114eed6c8962b5a14c9d524dd8cf67838b65fcab791e30303eea2d4ea0f5"
+  },
+  "1574": {
+    "file": "app/photos/1574.webp",
+    "original_filename": "Мессонье.webp",
+    "source_name": "Платформа «Наследие» ДОМ.РФ",
+    "source_url": "https://наследие.дом.рф/",
+    "source_statement": "Источник указан пользователем; соответствие объекту задано именем файла.",
+    "author": null,
+    "date_taken": null,
+    "license": "Права на фотографии не входят в MIT/CC BY проекта.",
+    "sha256": "5565e99adad5e0a11a8d32b5f62b6ab549e7e578bc103aa498f0ebb10b6e9108"
+  },
+  "2110": {
+    "file": "app/photos/2110.webp",
+    "original_filename": "Фаберже.webp",
+    "source_name": "Платформа «Наследие» ДОМ.РФ",
+    "source_url": "https://наследие.дом.рф/",
+    "source_statement": "Источник указан пользователем; соответствие объекту задано именем файла.",
+    "author": null,
+    "date_taken": null,
+    "license": "Права на фотографии не входят в MIT/CC BY проекта.",
+    "sha256": "64f534d80f77116a4cb3e80d0b9cd73615484b018703cda46fda57bd887eb673"
+  },
+  "2200": {
+    "file": "app/photos/2200.webp",
+    "original_filename": "Детский сад.webp",
+    "source_name": "Платформа «Наследие» ДОМ.РФ",
+    "source_url": "https://наследие.дом.рф/",
+    "source_statement": "Источник указан пользователем; соответствие объекту задано именем файла.",
+    "author": null,
+    "date_taken": null,
+    "license": "Права на фотографии не входят в MIT/CC BY проекта.",
+    "sha256": "a91c755e3f1540e1243c1d40945896322eb2f4ea331c545de580d57bddc079de"
+  }
+}

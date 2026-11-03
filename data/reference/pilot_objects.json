@@ -1,0 +1,126 @@
+{
+  "version": "1.0",
+  "description": "Значения показателей по четырем пилотным объектам, извлеченные из первичных документов. Реквизиты документов-источников приведены в поле sources. Образы документов в репозиторий не включены.",
+  "objects": [
+    {
+      "kgiop_id": "490",
+      "egrokn": "791410028760005",
+      "name": "Дом Ф. Н. Челищева (М. В. Кольбе)",
+      "address": "Санкт-Петербург, Вознесенский пр., 36, лит. А",
+      "area_sqm": 7352.2,
+      "cadastral_value_building_rub": 163618054.17,
+      "cadastral_value_plot_rub": 28098862.49,
+      "land_use": "Объекты культурно-досуговой деятельности",
+      "regime": "A",
+      "criteria_confirmed": 6,
+      "criteria_undetermined": 0,
+      "latest_condition_document": "2018-06-14",
+      "revenue_per_sqm_year_thousand_rub": 12,
+      "indicators": {
+        "1.1": "6", "1.2": "concrete_brick", "1.3": 8.2, "1.4": "finish",
+        "2.1": "public_vested", "2.2": "none", "2.3": "none", "2.4": "all", "2.5": "complete",
+        "3.3": 7352.2, "3.5": "full",
+        "4.1": "historic", "4.2": 15, "4.3": "3-4", "4.4": "fits",
+        "5.1": "interiors", "5.2": "regional", "5.3": "monument"
+      },
+      "risk_flags": {"survey": "visual_accessible", "emergency_structures": true, "overdue": true, "litigation": false},
+      "sources": [
+        "Акт отнесения к находящимся в неудовлетворительном состоянии от 14.06.2018",
+        "Акт технического состояния от 23.03.2016",
+        "Охранное обязательство, утв. распоряжением КГИОП от 31.03.2016 № 40-39",
+        "Предмет охраны, утв. распоряжением КГИОП от 19.05.2011 № 10-207",
+        "Границы территории, утв. распоряжением КГИОП от 17.02.2022 № 138-рп"
+      ]
+    },
+    {
+      "kgiop_id": "1574",
+      "egrokn": "781410071140005",
+      "name": "Особняк Г. К. Мессонье",
+      "address": "Санкт-Петербург, Кожевенная линия, 38, лит. А",
+      "area_sqm": 431.3,
+      "cadastral_value_building_rub": 11126266.24,
+      "cadastral_value_plot_rub": 1396527.76,
+      "land_use": "для размещения промышленных объектов",
+      "regime": "A",
+      "criteria_confirmed": 6,
+      "criteria_undetermined": 0,
+      "latest_condition_document": "2024-06-04",
+      "revenue_per_sqm_year_thousand_rub": 7,
+      "indicators": {
+        "1.1": "6", "1.2": "mixed", "1.3": 2.3, "1.4": "structural",
+        "2.1": "public_free", "2.2": "none", "2.3": "closed", "2.4": "one", "2.5": "complete",
+        "3.3": 431.3, "3.5": "full",
+        "4.1": "historic", "4.2": 35, "4.3": "3-4", "4.4": "change_needed",
+        "5.1": "structure", "5.2": "regional", "5.3": "monument"
+      },
+      "risk_flags": {"survey": "visual_accessible", "emergency_structures": true, "overdue": true, "litigation": false},
+      "sources": [
+        "Акт отнесения к находящимся в неудовлетворительном состоянии от 24.05.2021",
+        "Акт технического состояния от 04.06.2024 № 06-12-247/24-1-0",
+        "Охранное обязательство, утв. распоряжением КГИОП от 28.06.2024 № 283-об/24",
+        "Предмет охраны, утв. распоряжением КГИОП от 06.03.2024 № 264-рп",
+        "Границы территории, утв. распоряжением КГИОП от 22.09.2014 № 10-603"
+      ]
+    },
+    {
+      "kgiop_id": "2110",
+      "egrokn": "781711006530016",
+      "name": "Дом жилой в составе ансамбля «Дача Фаберже К. Г. (А. К.)»",
+      "address": "Санкт-Петербург, Песочное шоссе, 14, лит. А",
+      "area_sqm": 2142.5,
+      "cadastral_value_building_rub": 90605459.0,
+      "cadastral_value_plot_rub": 62172956.77,
+      "land_use": "Историко-культурная деятельность",
+      "regime": "A",
+      "criteria_confirmed": 6,
+      "criteria_undetermined": 0,
+      "latest_condition_document": "2025-05-30",
+      "revenue_per_sqm_year_thousand_rub": 6,
+      "indicators": {
+        "1.1": "6", "1.2": "mixed", "1.3": 1.3, "1.4": "structural",
+        "2.1": "public_vested", "2.2": "long", "2.3": "open", "2.4": "all", "2.5": "partial",
+        "3.3": 2142.5, "3.5": "full",
+        "4.1": "periphery", "4.2": 40, "4.3": "0", "4.4": "change_needed",
+        "5.1": "interiors", "5.2": "federal", "5.3": "ensemble_part"
+      },
+      "risk_flags": {"survey": "visual_accessible", "emergency_structures": true, "overdue": true, "litigation": true},
+      "sources": [
+        "Акт отнесения к находящимся в неудовлетворительном состоянии от 16.06.2023",
+        "Акт технического состояния от 30.05.2025",
+        "Охранное обязательство, утв. распоряжением КГИОП от 14.06.2017 № 07-19-202/17",
+        "Предмет охраны, утв. распоряжением КГИОП от 06.06.2018 № 230-р",
+        "Границы территории, утв. распоряжением КГИОП от 26.04.2023 № 295-рп"
+      ]
+    },
+    {
+      "kgiop_id": "2200",
+      "egrokn": "782011329160125",
+      "name": "Здание детского сада в составе ансамбля «Батенинский жилмассив»",
+      "address": "Санкт-Петербург, Лесной пр., 37, лит. Л",
+      "area_sqm": 654.1,
+      "cadastral_value_building_rub": 20652477.0,
+      "cadastral_value_plot_rub": 9842969.13,
+      "land_use": "для размещения объектов социального обеспечения",
+      "regime": "A",
+      "criteria_confirmed": 5,
+      "criteria_undetermined": 1,
+      "latest_condition_document": "2021-06-09",
+      "revenue_per_sqm_year_thousand_rub": 8,
+      "indicators": {
+        "1.1": "5", "1.2": "block_slag", "1.3": 5.3, "1.4": "structural",
+        "2.1": "public_free", "2.2": "long", "2.3": "open", "2.4": "all", "2.5": "complete",
+        "3.3": 654.1, "3.5": "full",
+        "4.1": "city", "4.2": 8, "4.3": "0", "4.4": "change_needed",
+        "5.1": "structure", "5.2": "regional", "5.3": "ensemble_part"
+      },
+      "risk_flags": {"survey": "no_interior_access", "emergency_structures": true, "overdue": true, "litigation": true},
+      "sources": [
+        "Акт отнесения к находящимся в неудовлетворительном состоянии от 09.06.2021",
+        "Акт технического состояния от 06.05.2021 № 07-20-46/21-2-0",
+        "Охранное обязательство, утв. распоряжением КГИОП от 26.05.2021 № 04-19-201/21",
+        "Предмет охраны, утв. распоряжением КГИОП от 18.10.2019 № 594-р",
+        "Границы территории, утв. распоряжением КГИОП от 14.08.2019 № 492-р"
+      ]
+    }
+  ]
+}

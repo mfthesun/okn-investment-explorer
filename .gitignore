@@ -1,0 +1,24 @@
+# исходная необезличенная выгрузка и любые образы документов
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/dataset.xlsx
+
+# результаты пересчитываются скриптами
+results/*.csv
+results/*.json
+!results/.gitkeep
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+.DS_Store
+
+# локальные запуски и видеочерновики
+results/runs/
+demo-recordings/
+results/browser-check/
+
+results/visual-check/
+.ruff_cache/
