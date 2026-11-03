@@ -265,7 +265,7 @@
   "scope": "Только четыре пилотных объекта; не поиск по 156 или 141 объекту",
   "provenance": {
     "engine_version": "practice3-1.0",
-    "git_commit": "11b9492e186786a2c451af73fd62ecf4bab6bf45",
+    "git_commit": "e3f417d66126cb19e4322c59385db173054fc883",
     "sha256": {
       "data/reference/pilot_objects.json": "9ab33690e1031a2c15a69fb65b7341becbf67a988f2fa7712a8e109b6a813564",
       "data/reference/criteria.json": "8fce4256f68b242cd3883ac1c0b77f6f0dc2814aad3c39b2fb0417cb979c6718",
@@ -276,7 +276,7 @@
       "src/scenarios.py": "3971c5ff87e876880455ee155f5d493028aedf8c41221da1b4effc2b9c3ce7eb"
     },
     "data_date": "Срез НИР2; точная дата сводного среза не задана. Даты актов — в карточках.",
-    "calculated_at_utc": "2026-11-03T16:04:07.470165+00:00"
+    "calculated_at_utc": "2026-11-03T20:33:33.850891+00:00"
   },
   "name": "scenario_a"
 }
