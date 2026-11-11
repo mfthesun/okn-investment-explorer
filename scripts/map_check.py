@@ -15,6 +15,7 @@ with sync_playwright() as pw:
     errors = []
     p.on("pageerror", lambda e: errors.append(str(e)))
     p.goto(os.environ.get("APP_URL", "http://127.0.0.1:8765"))
+    p.locator("#adminView").click()
     p.wait_for_selector(".okn-marker")
     assert p.locator(".okn-marker").count() == 4
     p.wait_for_function(
@@ -36,7 +37,7 @@ with sync_playwright() as pw:
     assert p.locator("#object").input_value() == "1574"
     assert "Мессонье" in p.locator(".leaflet-popup").inner_text()
     p.locator("#mapMode").select_option("delta")
-    assert "изменение ИИП" in p.locator("#mapLegend").inner_text()
+    assert "разница индекса с базой" in p.locator("#mapLegend").inner_text()
     assert p.locator(".okn-marker").count() == 4
     p.locator("#basemap").select_option("offline")
     assert p.locator(".leaflet-tile").count() == 0

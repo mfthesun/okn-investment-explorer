@@ -48,7 +48,7 @@ function setBasemap() {
     clearTimeout(tileTimer);
     $("mapStatus").textContent = errors
       ? "Часть подложки недоступна; точки и расчеты сохранены."
-      : "Esri · онлайн. Координаты объектов и расчетные значения — из локальных данных НИР2.";
+      : "Esri · онлайн. Координаты объектов и расчетные значения — из сохранённых данных исследования.";
   });
   layer.on("tileerror", () => {
     if (esriLayer !== layer) return;
@@ -123,7 +123,7 @@ function drawMap() {
       offset: [0, o.kgiop_id === "490" ? 10 : -10],
     });
     marker.bindPopup(
-      `<img class="popup-photo" src="/photos/${o.kgiop_id}.webp" alt="${esc(o.name)}"><small class="popup-source">Фото: ${photoCredit()}</small><strong>${esc(o.name)}</strong><br>${esc(o.address)}<br>${mode === "delta" ? "Изменение ИИП" : mode === "base" ? "Базовый ИИП" : "ИИП сценария"}: ${fmt(value)}<br>${r ? "Полный набор показателей" : "Исключен: " + esc(current.excluded.find((e) => e.id === o.kgiop_id)?.reason || "не выбран")}`,
+      `<img class="popup-photo" src="/photos/${o.kgiop_id}.webp" alt="${esc(o.name)}"><small class="popup-source">Фото: ${photoCredit()}</small><strong>${esc(o.name)}</strong><br>${esc(o.address)}<br>${mode === "delta" ? "Разница индекса с базой" : mode === "base" ? "Базовый индекс" : "Индекс текущего расчёта"}: ${fmt(value)}<br>${r ? "Полный набор показателей" : "Исключен: " + esc(current.excluded.find((e) => e.id === o.kgiop_id)?.reason || "не выбран")}`,
     );
     marker.on("click", () => {
       $("object").value = o.kgiop_id;
@@ -132,7 +132,7 @@ function drawMap() {
     marker.addTo(objectMarkers);
   }
   $("mapLegend").textContent =
-    `Метка: номер КГИОП · ${mode === "delta" ? "изменение ИИП; зеленый — рост, терракотовый — снижение" : mode === "base" ? "базовый ИИП" : "ИИП сценария"}. Серый — исключен. Без координат: ${
+    `Метка: учётный номер объекта · ${mode === "delta" ? "разница индекса с базой; зеленый — рост, терракотовый — снижение" : mode === "base" ? "базовый индекс" : "Индекс текущего расчёта"}. Серый — исключен. Без координат: ${
       catalog.objects
         .filter((o) => !pts[o.kgiop_id])
         .map((o) => o.kgiop_id)

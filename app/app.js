@@ -94,9 +94,50 @@ function lock() {
     "revenue",
     ...catalog.criteria.groups.map((g) => "w" + g.id),
   ].forEach((id) => ($(id).disabled = locked));
+  $("draftContext").textContent = `Стоимость: ${fmt(Number($("cost").value), 0)} тыс. ₽/м². Множитель дохода: ${fmt(Number($("revenue").value), 1)}. Важность групп: ${catalog.criteria.groups.map(g => `${groupLabels[g.id]} — ${fmt(Number($("w" + g.id).value) * 100, 0)}%`).join("; ")}. Изменить допущения можно в представлении администратора.`;
   $("weightSum").textContent =
     "Сумма: " +
     fmt(Object.values(parameters().weights).reduce((a, b) => a + b, 0));
+}
+const groupLabels = {G1: "Состояние и работы", G2: "Правовые условия", G3: "Финансовый потенциал", G4: "Доступность", G5: "Охрана и приспособление"};
+function setView(view) {
+  document.body.dataset.view = view;
+  const admin = view === "admin";
+  $("adminView").setAttribute("aria-pressed", String(admin));
+  $("investorView").setAttribute("aria-pressed", String(!admin));
+  $("viewEyebrow").textContent = admin ? "АНАЛИЗ И СЦЕНАРИИ" : "НАСЛЕДИЕ САНКТ-ПЕТЕРБУРГА";
+  $("viewTitle").innerHTML = admin ? "Разобраться в оценках.<br>Проверить предположения." : "Увидеть потенциал.<br>Понять условия.";
+  $("viewDescription").textContent = admin
+    ? "Сравните оценки зданий по пяти группам критериев, измените предположения и проверьте, насколько устойчив результат."
+    : "Сравните четыре исторических здания: состояние, ограничения и условные затраты на восстановление. Выберите, что стоит изучить подробнее.";
+  const url = new URL(location.href);
+  url.searchParams.set("view", view);
+  history.replaceState(null, "", url);
+  if (locationMap) requestAnimationFrame(() => locationMap.invalidateSize());
+}
+$("investorView").onclick = () => setView("investor");
+$("adminView").onclick = () => setView("admin");
+setView(new URL(location.href).searchParams.get("view") === "admin" ? "admin" : "investor");
+function openObject(id) {
+  $("object").value = id;
+  drawCard();
+  $("object").closest("section").scrollIntoView({behavior: reducedMotion() ? "instant" : "smooth", block: "start"});
+  $("object").focus({preventScroll: true});
+}
+function catalogSummary(o) {
+  if (!current) return "";
+  const r = current.rows.find(r => r.id === o.kgiop_id);
+  return `<div class="catalog-summary investor-only"><p class="catalog-address">${esc(o.address)}</p>${r
+    ? `<div class="catalog-numbers"><span><strong>${fmt(r.iip, 3)}<small> / 1</small></strong>Индекс · место ${r.rank}</span><span><strong>${fmt(r.finance.capex_rub / 1e6, 1)}<small> млн ₽</small></strong>Условные затраты</span></div>`
+    : `<p>Вне текущего рейтинга: ${esc(current.excluded.find(e => e.id === o.kgiop_id)?.reason || "не выбран")}</p>`}</div>`;
+}
+function drawAnalytics() {
+  $("rankChart").innerHTML = current.rows.length
+    ? `<div class="rank-scale" aria-hidden="true"><span>0</span><span>0,5</span><span>1</span></div>` + current.rows.map(r =>
+      `<div class="rank-row"><button data-card="${r.id}">${r.rank}. ${esc(r.name)}</button><div class="rank-track" aria-hidden="true"><span style="width:${r.iip * 100}%"></span></div><strong>${fmt(r.iip)}</strong></div>`).join("")
+    : "<p>Нет объектов в рейтинге. Расширьте ограничения или измените выбор.</p>";
+  $("rankChart").querySelectorAll("button").forEach(b => b.onclick = () => openObject(b.dataset.card));
+  $("groupMatrix").innerHTML = current.rows.length ? `<table class="heatmap"><caption>Оценки групп · от 0 до 1</caption><thead><tr><th scope="col">Объект</th>${catalog.criteria.groups.map(g => `<th scope="col">${esc(groupLabels[g.id])}<small>Вес ${fmt(current.parameters.weights[g.id] * 100, 0)}%</small></th>`).join("")}</tr></thead><tbody>${current.rows.map(r => `<tr><th scope="row">${esc(r.name)}</th>${catalog.criteria.groups.map(g => `<td style="background:rgb(${Math.round(247 - 97 * r.groups[g.id])},${Math.round(250 - 58 * r.groups[g.id])},${Math.round(252 - 31 * r.groups[g.id])});color:#203b36">${fmt(r.groups[g.id], 3)}</td>`).join("")}</tr>`).join("")}</tbody></table>` : "<p>Нет данных для сравнения групп в текущем отборе.</p>";
 }
 function drawCatalog() {
   const q = $("search").value.toLowerCase(),
@@ -110,20 +151,13 @@ function drawCatalog() {
     visible
       .map(
         (o) =>
-          `<article class="catalog-card"><button class="photo-open" data-object="${o.kgiop_id}" aria-label="Открыть карточку: ${esc(o.name)}"><img src="/photos/${o.kgiop_id}.webp" alt="${esc(o.name)}" width="640" height="360" loading="lazy"><span class="photo-open-hint">${icon("arrow")} Карточка объекта</span></button><label><input type="checkbox" data-id="${o.kgiop_id}" ${selected.has(o.kgiop_id) ? "checked" : ""}><span>${esc(o.name)}<small>№ ${o.kgiop_id} · ${fmt(o.area_sqm, 1)} м²</small></span></label></article>`,
+          `<article class="catalog-card"><button class="photo-open" data-object="${o.kgiop_id}" aria-label="Открыть карточку: ${esc(o.name)}"><img src="/photos/${o.kgiop_id}.webp" alt="${esc(o.name)}" width="640" height="360" loading="lazy"><span class="photo-open-hint">${icon("arrow")} Карточка объекта</span></button><label><input type="checkbox" data-id="${o.kgiop_id}" ${selected.has(o.kgiop_id) ? "checked" : ""}><span>${esc(o.name)}<small>№ ${o.kgiop_id} · ${fmt(o.area_sqm, 1)} м²</small></span></label>${catalogSummary(o)}</article>`,
       )
       .join("") || "<p>Нет совпадений</p>";
   $("catalog")
     .querySelectorAll("[data-object]")
     .forEach((button) => {
-      button.onclick = () => {
-        $("object").value = button.dataset.object;
-        drawCard();
-        $("card").scrollIntoView({
-          behavior: reducedMotion() ? "instant" : "smooth",
-          block: "start",
-        });
-      };
+      button.onclick = () => openObject(button.dataset.object);
     });
   $("catalog")
     .querySelectorAll("input")
@@ -155,22 +189,24 @@ function draw() {
   if (!current) return;
   const best = current.rows.filter((r) => r.rank === 1);
   $("metrics").innerHTML =
-    `<div class="metric">Проверено / выбрано<strong>${current.checked} / ${current.selected.length}</strong></div><div class="metric">Допущено к рейтингу<strong>${current.eligible}</strong></div><div class="metric">Лидеры выбранной выборки<strong>${best.map((r) => r.id).join(", ") || "Нет"}</strong></div>`;
-  $("criterion").textContent = current.criterion + ". " + current.scope;
+    `<div class="metric">Проверено / выбрано<strong>${current.checked} / ${current.selected.length}</strong></div><div class="metric">Допущено к рейтингу<strong>${current.eligible}</strong></div><div class="metric">Наибольший индекс<strong>${best.length ? fmt(best[0].iip) : "Нет"}</strong></div>`;
+  $("criterion").textContent = best.length
+    ? `Наибольшая оценка среди ${current.eligible} допущенных объектов: ${best.map(r => r.name).join("; ")}. Это повод изучить объект подробнее, а не готовое решение о покупке.`
+    : "По заданным ограничениям ни один объект не вошёл в рейтинг. Попробуйте увеличить предел затрат или диапазон площади.";
+  $("resultContext").textContent = `Показан расчёт «${current.name}». Стоимость работ: ${fmt(current.parameters.cost, 0)} тыс. ₽/м²; множитель дохода: ${fmt(current.parameters.revenue_factor, 1)}. ${current.parameters.mode === "nir2" ? "Исходные веса критериев." : "Изменённые предположения: подробности в представлении администратора."} Оба представления используют этот результат.`;
+  drawCatalog();
+  drawAnalytics();
   $("ranking").innerHTML =
-    `<table><thead><tr><th>Место</th><th>Объект</th><th>ИИП</th><th>Δ к базе</th><th>CAPEX, млн ₽</th></tr></thead><tbody>${current.rows.map((r) => `<tr data-id="${r.id}"><td>${r.rank}</td><td><button data-card="${r.id}">${esc(r.name)}</button></td><td>${fmt(r.iip)}</td><td>${fmt(r.delta)}</td><td>${fmt(r.finance.capex_rub / 1e6, 1)}</td></tr>`).join("")}</tbody></table>`;
+    `<table><thead><tr><th>Место</th><th>Объект</th><th>Индекс, 0–1</th><th>Разница с базой</th><th>Затраты, млн ₽</th></tr></thead><tbody>${current.rows.map((r) => `<tr data-id="${r.id}"><td>${r.rank}</td><td><button data-card="${r.id}">${esc(r.name)}</button></td><td>${fmt(r.iip)}</td><td>${fmt(r.delta)}</td><td>${fmt(r.finance.capex_rub / 1e6, 1)}</td></tr>`).join("")}</tbody></table>`;
   $("ranking")
     .querySelectorAll("button")
     .forEach(
       (b) =>
-        (b.onclick = () => {
-          $("object").value = b.dataset.card;
-          drawCard();
-        }),
+        (b.onclick = () => openObject(b.dataset.card)),
     );
   $("excluded").textContent =
     "Исключения: " +
-    (current.excluded.map((e) => `${e.id} — ${e.reason}`).join("; ") || "нет");
+    (current.excluded.map((e) => `${catalog.objects.find(o => o.kgiop_id === e.id)?.name || e.id} — ${e.reason}`).join("; ") || "нет");
   $("provenance").textContent = JSON.stringify(current.provenance, null, 2);
   drawCard();
   drawMap();
@@ -181,13 +217,13 @@ function drawCard() {
   const o = catalog.objects.find((o) => o.kgiop_id === $("object").value);
   const r = current.rows.find((r) => r.id === o.kgiop_id);
   const coord = catalog.coordinates.points[o.kgiop_id];
-  let html = `<figure class="object-photo"><a href="/photos/${o.kgiop_id}.webp" target="_blank" rel="noopener" aria-label="Открыть фотографию ${esc(o.name)} полностью"><img src="/photos/${o.kgiop_id}.webp" alt="${esc(o.name)}" width="1920" height="1080"></a><figcaption>${icon("camera")} Фото: ${photoCredit()}. Дата съемки не указана.</figcaption></figure><h3>${esc(o.name)}</h3><p>${esc(o.address)} · ЕГРОКН ${o.egrokn}</p><p class="hint">Последний документ о состоянии: ${o.latest_condition_document}. Давность в модели: ${o.indicators["1.3"]} лет (фиксированный срез НИР2).<br>Координаты: ${coord ? coord.lat + ", " + coord.lon : "не установлены"}.</p>`;
+  let html = `<figure class="object-photo"><a href="/photos/${o.kgiop_id}.webp" target="_blank" rel="noopener" aria-label="Открыть фотографию ${esc(o.name)} полностью"><img src="/photos/${o.kgiop_id}.webp" alt="${esc(o.name)}" width="1920" height="1080"></a><figcaption>${icon("camera")} Фото: ${photoCredit()}. Дата съемки не указана.</figcaption></figure><h3>${esc(o.name)}</h3><p>${esc(o.address)} · ЕГРОКН ${o.egrokn}</p><p class="hint">Последний документ о состоянии: ${o.latest_condition_document}. Возраст сведений в расчёте: ${o.indicators["1.3"]} лет (сохранённый срез исследования, не обновляется автоматически).<br>Координаты: ${coord ? coord.lat + ", " + coord.lon : "не установлены"}.</p>`;
   if (r) {
-    html += `<div class="card-stats"><div><strong>${fmt(r.iip)}</strong><span>ИИП · полный набор 21/21</span></div><div><strong>${fmt(r.finance.capex_rub / 1e6, 1)}</strong><span>CAPEX, млн ₽ · условный</span></div><div><strong>${fmt(r.finance.payback_years, 1)}</strong><span>PP, лет · ${esc(r.payback_status)}</span></div></div><p class="hint">Наличие 21 значения не означает достоверность всех предположений.</p><h3>Вклад групп в индекс</h3>`;
+    html += `<div class="card-stats"><div><strong>${fmt(r.iip)}</strong><span>Индекс от 0 до 1 · 21 показатель</span></div><div><strong>${fmt(r.finance.capex_rub / 1e6, 1)}</strong><span>Затраты, млн ₽ · условные</span></div><div><strong>${fmt(r.finance.payback_years, 1)}</strong><span>Окупаемость, лет · ${r.finance.payback_years == null ? "не окупается при нулевом доходе" : "без расходов и дисконтирования"}</span></div></div><p class="hint">Наличие 21 значения не означает достоверность всех предположений.</p><h3>Из чего складывается индекс</h3><p class="hint">Оценка каждой группы от 0 до 1 умножается на её вес (важность). Сумма пяти вкладов даёт итоговый индекс. Более высокая оценка всегда означает более благоприятные условия по модели, в том числе для правовых ограничений.</p>`;
     html += catalog.criteria.groups
       .map(
         (g) =>
-          `<div class="group"><span>${g.id} · ${esc(g.name)}<br><span class="hint">Оценка ${fmt(r.groups[g.id])} × вес ${fmt(current.parameters.weights[g.id], 2)}</span></span><div class="bar"><span style="width:${100 * r.contributions[g.id]}%"></span></div><strong>${fmt(r.contributions[g.id])}</strong></div>`,
+          `<div class="group"><span>${esc(groupLabels[g.id])}<br><span class="hint">Оценка ${fmt(r.groups[g.id])} × вес ${fmt(current.parameters.weights[g.id] * 100, 0)}%</span></span><div class="bar"><span style="width:${100 * r.contributions[g.id]}%"></span></div><strong>${fmt(r.contributions[g.id])}</strong></div>`,
       )
       .join("");
   } else
@@ -250,15 +286,15 @@ function drawSaved() {
 function drawComparison() {
   const runs = saved.filter((s) => s.rows && compare.has(s.run_id)).slice(0, 8);
   $("comparison").innerHTML =
-    `<table><thead><tr><th>Объект</th>${runs.map((s) => "<th>" + esc(s.name) + "</th>").join("")}</tr></thead><tbody>${catalog.objects.map((o) => "<tr><td>" + o.kgiop_id + "</td>" + runs.map((s) => "<td>" + fmt(s.rows.find((r) => r.id === o.kgiop_id)?.iip) + "</td>").join("") + "</tr>").join("")}</tbody></table>`;
+    `<table><thead><tr><th>Объект</th>${runs.map((s) => "<th>" + esc(s.name) + "</th>").join("")}</tr></thead><tbody>${catalog.objects.map((o) => "<tr><td>" + esc(o.name) + "</td>" + runs.map((s) => "<td>" + fmt(s.rows.find((r) => r.id === o.kgiop_id)?.iip) + "</td>").join("") + "</tr>").join("")}</tbody></table>`;
   $("comparisonChart").innerHTML = catalog.objects
     .map(
       (o) =>
-        `<div class="chart-row"><strong>${o.kgiop_id}</strong><div>${runs
+        `<div class="chart-row"><strong>${esc(o.name)}</strong><div>${runs
           .map((s, i) => {
             const r = s.rows.find((r) => r.id === o.kgiop_id);
             return r
-              ? `<div class="chart-bar" style="width:${r.iip * 100}%;background:${colors[i]}">${esc(s.name)} · ${fmt(r.iip)}</div>`
+              ? `<div class="comparison-label">${esc(s.name)} · ${fmt(r.iip)}</div><div class="comparison-track" aria-hidden="true"><div class="chart-bar" style="width:${r.iip * 100}%;background:${colors[i]}"></div></div>`
               : `<p class="hint">${esc(s.name)} — исключен</p>`;
           })
           .join("")}</div></div>`,
@@ -282,9 +318,9 @@ $("reset").onclick = () =>
     selected = new Set(catalog.objects.map((o) => o.kgiop_id));
     $("search").value = "";
     $("category").value = "";
-    $("name").value = "База НИР2";
+    $("name").value = "Базовый расчёт";
     drawCatalog();
-    await run("База НИР2");
+    await run("Базовый расчёт");
   });
 $("scenarioA").onclick = () => {
   setParameters({
@@ -304,12 +340,14 @@ $("scenarioB").onclick = () => {
   setParameters(p);
   $("name").value = "Б · правовые риски";
   $("status").textContent =
-    "Б: пользователь придает больше значения правовым рискам: G1=0,20, G2=0,40. Остальные веса и входы прежние. Нажмите «Рассчитать».";
+    "Б: важность правовых условий — 40%, состояния и работ — 20%. Остальные параметры прежние. Нажмите «Рассчитать».";
 };
 $("mode").onchange = () => {
   if ($("mode").value === "nir2") setParameters(catalog.defaults);
   lock();
 };
+$("cost").oninput = lock;
+$("revenue").oninput = lock;
 $("search").oninput = drawCatalog;
 $("category").onchange = drawCatalog;
 $("object").onchange = drawCard;
@@ -355,11 +393,11 @@ $("stability").onclick = () =>
       )
         .map(
           ([id, v]) =>
-            `<tr><td>${id}</td><td>${v.min_rank}–${v.max_rank}</td><td>${fmt(v.top_share * 100, 1)}%</td></tr>`,
+            `<tr><td>${esc(catalog.objects.find(o => o.kgiop_id === id)?.name || id)}</td><td>${v.min_rank}–${v.max_rank}</td><td>${fmt(v.top_share * 100, 1)}%</td></tr>`,
         )
         .join(
           "",
-        )}</table><p>τ-b Кендалла: от ${fmt(Math.min(...stability.samples.map((s) => s.kendall_tau_b)))} до ${fmt(Math.max(...stability.samples.map((s) => s.kendall_tau_b)))}.</p>`;
+        )}</table><p>Согласованность порядка с базовым рейтингом (коэффициент Кендалла, 1 — полное совпадение): от ${fmt(Math.min(...stability.samples.map((s) => s.kendall_tau_b)))} до ${fmt(Math.max(...stability.samples.map((s) => s.kendall_tau_b)))}.</p>`;
     $("stabilityExport").hidden = false;
     springIn($("stabilityResult"));
     $("status").textContent =
@@ -377,7 +415,7 @@ action(async () => {
   $("weights").innerHTML = catalog.criteria.groups
     .map(
       (g) =>
-        `<label>${g.id} · ${esc(g.name)}<input id="w${g.id}" type="number" min="0" max="1" step="0.01" value="${g.weight}"></label>`,
+        `<label>${esc(groupLabels[g.id])}<input id="w${g.id}" type="number" min="0" max="1" step="0.01" value="${g.weight}"></label>`,
     )
     .join("");
   catalog.criteria.groups.forEach((g) => ($("w" + g.id).oninput = lock));
@@ -398,5 +436,5 @@ action(async () => {
     $("name").value = current.name;
     drawCatalog();
     draw();
-  } else await run("База НИР2");
+  } else await run("Базовый расчёт");
 });

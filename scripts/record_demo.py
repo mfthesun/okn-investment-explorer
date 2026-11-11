@@ -53,6 +53,7 @@ with sync_playwright() as pw:
     start = time.monotonic()
     p = c.new_page()
     p.goto(url)
+    p.locator("#adminView").click()
     p.wait_for_selector("#ranking tbody tr")
 
     def step(caption, seconds):
@@ -65,13 +66,14 @@ with sync_playwright() as pw:
 
     p.locator("#reset").click()
     p.wait_for_function(
-        'document.querySelector("#status").textContent.includes("Сохранено: База")'
+        'document.querySelector("#status").textContent.includes("Сохранено: Базовый")'
     )
     p.evaluate("window.scrollTo(0,0)")
     step(
         "ОКН.Индекс: четыре объекта, объяснимый рейтинг.\nИндекс не является инвестиционной рекомендацией.",
         6,
     )
+    p.locator("#investorView").click()
     p.locator("#catalog").scroll_into_view_if_needed()
     p.wait_for_function(
         'Array.from(document.querySelectorAll("#catalog img")).every(i=>i.naturalWidth>0)'
@@ -98,6 +100,7 @@ with sync_playwright() as pw:
         "Интерактивная карта Esri: выбор объекта по метке.\nБез подложки точки и расчёты работают офлайн.",
         8,
     )
+    p.locator("#adminView").click()
     p.locator("#scenarioA").click()
     p.locator("#run").click()
     p.wait_for_function(
@@ -151,7 +154,7 @@ with sync_playwright() as pw:
     p.locator("#csv").click()
     p.locator("#reset").click()
     p.wait_for_function(
-        'document.querySelector("#status").textContent.includes("Сохранено: База")'
+        'document.querySelector("#status").textContent.includes("Сохранено: Базовый")'
     )
     p.locator("#ranking").scroll_into_view_if_needed()
     step(
@@ -164,6 +167,7 @@ with sync_playwright() as pw:
         6,
     )
     p.goto(url)
+    p.locator("#adminView").click()
     p.wait_for_selector("#ranking tbody tr")
     p.locator("#provenance").evaluate('e=>e.closest("section").scrollIntoView()')
     step(

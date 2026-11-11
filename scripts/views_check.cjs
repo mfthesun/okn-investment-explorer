@@ -1,0 +1,105 @@
+// Run with an installed Playwright JS package: node scripts/views_check.cjs.
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+(async () => {
+  const browser = await chromium.launch({ executablePath: process.env.BROWSER_EXECUTABLE || '/usr/bin/google-chrome', headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+    const errors = [];
+    page.on('pageerror', e => errors.push(e.message));
+    // Test local functionality independently of tile-server availability.
+    await page.route('https://server.arcgisonline.com/**', r => r.abort());
+    await page.goto(process.env.APP_URL || 'http://127.0.0.1:8765');
+    await page.waitForFunction(() => current && !document.querySelector('#run').disabled);
+    assert.equal(await page.locator('body').getAttribute('data-view'), 'investor');
+    assert.equal(await page.locator('#mode').isVisible(), false);
+    assert.equal(await page.locator('#rankChart').isVisible(), false);
+    await page.locator('#reset').click();
+    await page.waitForFunction(() => !document.querySelector('#run').disabled);
+    assert.equal(await page.locator('.catalog-numbers').count(), 4);
+    await page.locator('.guide summary').click();
+    assert.match(await page.locator('.guide').innerText(), /0,6 не означает доходность 60%/);
+    await page.locator('.guide summary').click();
+    for (const id of ['490', '1574', '2110', '2200']) {
+      await page.locator('#object').selectOption(id);
+      assert.equal(await page.locator('#card .object-photo img').getAttribute('src'), `/photos/${id}.webp`);
+      await page.waitForFunction(() => document.querySelector('#card .object-photo img').naturalWidth > 0);
+      assert.match(await page.locator('#card figcaption').innerText(), /платформа «Наследие» ДОМ.РФ/);
+    }
+    assert.equal(await page.locator('#card').evaluate(e => e.getAnimations().length), 0);
+    const before = await page.evaluate(() => JSON.stringify(current));
+    await page.locator('#adminView').click();
+    assert.equal(await page.evaluate(() => JSON.stringify(current)), before);
+    assert.equal(await page.locator('#rankChart').isVisible(), true);
+    assert.equal(await page.locator('#groupMatrix tbody tr').count(), 4);
+    const cells = await page.locator('#groupMatrix tbody td').allTextContents();
+    const expected = await page.evaluate(() => current.rows.flatMap(r => catalog.criteria.groups.map(g => fmt(r.groups[g.id], 3))));
+    assert.deepEqual(cells, expected);
+    assert.equal(await page.locator('h2 .ui-icon').count(), 7);
+    const widths = await page.locator('.rank-track span').evaluateAll(es => es.map(e => parseFloat(e.style.width)));
+    const scores = await page.evaluate(() => current.rows.map(r => r.iip * 100));
+    widths.forEach((v, i) => assert.ok(Math.abs(v - scores[i]) < 1e-8));
+    await page.locator('#scenarioB').click();
+    await page.locator('#run').click();
+    await page.waitForFunction(() => !document.querySelector('#run').disabled);
+    assert.equal(await page.locator('#rankChart button').first().getAttribute('data-card'), '1574');
+    await page.locator('#rankChart button').first().click();
+    assert.equal(await page.locator('#object').inputValue(), '1574');
+    await page.locator('#manual').click();
+    await page.waitForFunction(() => document.querySelector('#manualResult').textContent.includes('Совпадает'));
+    await page.locator('#investorView').click();
+    assert.match(await page.locator('#resultContext').innerText(), /Б · правовые риски/);
+    await page.locator('.catalog-card [data-object="1574"]').click();
+    assert.equal(await page.locator('#object').inputValue(), '1574');
+    await page.locator('#budget').fill('0');
+    await page.locator('#run').click();
+    await page.waitForFunction(() => !document.querySelector('#run').disabled);
+    assert.equal(await page.locator('.catalog-numbers').count(), 0);
+    assert.match(await page.locator('#criterion').innerText(), /ни один объект/);
+    await page.locator('#adminView').click();
+    assert.equal(await page.locator('.rank-track').count(), 0);
+    assert.match(await page.locator('#groupMatrix').innerText(), /Нет данных/);
+    await page.locator('#reset').click();
+    await page.waitForFunction(() => !document.querySelector('#run').disabled);
+    await page.locator('#mode').selectOption('experiment');
+    await page.locator('#revenue').fill('0');
+    await page.locator('#run').click();
+    await page.waitForFunction(() => !document.querySelector('#run').disabled);
+    assert.match(await page.locator('#card').innerText(), /не окупается при нулевом доходе/);
+    const download = page.waitForEvent('download');
+    await page.locator('#json').click();
+    const file = await (await download).path();
+    const exported = JSON.parse(fs.readFileSync(file, 'utf8'));
+    assert.equal(exported.parameters.revenue_factor, 0);
+    assert.equal(exported.rows.length, 4);
+    await page.locator('#reset').click();
+    await page.waitForFunction(() => !document.querySelector('#run').disabled);
+    await page.reload();
+    await page.waitForFunction(() => current && !document.querySelector('#run').disabled);
+    assert.equal(await page.locator('body').getAttribute('data-view'), 'admin');
+    await page.locator('#basemap').selectOption('offline');
+    assert.equal(await page.locator('.okn-marker').count(), 4);
+    fs.mkdirSync('results/visual-check', { recursive: true });
+    await page.locator('#groupMatrix').scrollIntoViewIfNeeded();
+    await page.screenshot({path: 'results/visual-check/admin-groups.png'});
+    await page.locator('#rankChart').scrollIntoViewIfNeeded();
+    await page.screenshot({path: 'results/visual-check/admin-analytics.png'});
+    await page.locator('#investorView').click();
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.screenshot({path: 'results/visual-check/investor-home.png'});
+    await page.locator('#catalog').scrollIntoViewIfNeeded();
+    await page.screenshot({path: 'results/visual-check/investor-catalog.png'});
+    for (const view of ['investor', 'admin']) {
+      await page.locator(`#${view}View`).click();
+      await page.setViewportSize({width: 390, height: 844});
+      await page.evaluate(() => scrollTo(0, 0));
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await page.screenshot({path: `results/visual-check/${view}-mobile.png`});
+      await page.locator('#catalog').scrollIntoViewIfNeeded();
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    }
+    assert.deepEqual(errors, []);
+    console.log('PASS: views, shared state, explanations, charts, scenario, empty selection, zero income, export, reload, map, mobile; JS errors=0');
+  } finally { await browser.close(); }
+})().catch(e => { console.error(e); process.exitCode = 1; });

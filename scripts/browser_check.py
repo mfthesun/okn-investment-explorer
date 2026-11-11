@@ -19,10 +19,11 @@ with sync_playwright() as pw:
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.goto(os.environ.get("APP_URL", "http://127.0.0.1:8765"))
+    page.locator("#adminView").click()
     page.wait_for_function('document.querySelector("#ranking tbody tr") !== null')
     page.locator("#reset").click()
     page.wait_for_function(
-        'document.querySelector("#status").textContent.includes("Сохранено: База")'
+        'document.querySelector("#status").textContent.includes("Сохранено: Базовый")'
     )
     assert page.locator("#ranking tbody tr").count() == 4
     page.screenshot(path=str(out / "01-baseline.png"), full_page=True)
@@ -49,7 +50,7 @@ with sync_playwright() as pw:
     page.locator("#mapMode").select_option("delta")
     assert page.locator(".okn-marker").count() == 4
     assert page.locator('.okn-marker[title^="Объект 1574:"]').count() == 1
-    assert "изменение ИИП" in page.locator("#mapLegend").inner_text()
+    assert "разница индекса с базой" in page.locator("#mapLegend").inner_text()
     with page.expect_download() as d:
         page.locator("#json").click()
     d.value.save_as(out / "export.json")
@@ -70,7 +71,7 @@ with sync_playwright() as pw:
     assert "Сумма весов" in page.locator("#error").inner_text()
     page.locator("#reset").click()
     page.wait_for_function(
-        'document.querySelector("#status").textContent.includes("Сохранено: База")'
+        'document.querySelector("#status").textContent.includes("Сохранено: Базовый")'
     )
     page.locator("#mode").select_option("experiment")
     page.locator("#revenue").fill("0")
@@ -79,7 +80,7 @@ with sync_playwright() as pw:
     assert "нулевом доходе" in page.locator("#card").inner_text()
     page.locator("#reset").click()
     page.wait_for_function(
-        'document.querySelector("#status").textContent.includes("Сохранено: База")'
+        'document.querySelector("#status").textContent.includes("Сохранено: Базовый")'
     )
     assert page.locator("#ranking tbody tr").first.get_attribute("data-id") == "490"
     page.reload()

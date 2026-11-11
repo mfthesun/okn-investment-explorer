@@ -44,7 +44,7 @@ function springIn(element) {
 }
 const headingIcons = {
   "Параметры сценария": "settings",
-  "Каталог и рейтинг": "building",
+  "Объекты для сравнения": "building",
   "Карточка объекта": "building",
   "Расположение объектов": "map",
   "Сохраненные сценарии": "compare",
@@ -52,7 +52,7 @@ const headingIcons = {
   "Границы результата": "info",
 };
 document.querySelectorAll("h2").forEach((h) => {
-  const name = headingIcons[h.textContent.trim()];
+  const name = headingIcons[(h.querySelector(".admin-only") || h).textContent.trim()];
   if (name) h.insertAdjacentHTML("afterbegin", icon(name));
 });
 Object.entries({
