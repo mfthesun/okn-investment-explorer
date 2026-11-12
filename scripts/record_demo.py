@@ -68,9 +68,10 @@ with sync_playwright() as pw:
     p.wait_for_function(
         'document.querySelector("#status").textContent.includes("Сохранено: Базовый")'
     )
+    p.locator("#investorView").click()
     p.evaluate("window.scrollTo(0,0)")
     step(
-        "ОКН.Индекс: четыре объекта, объяснимый рейтинг.\nИндекс не является инвестиционной рекомендацией.",
+        "ОКН.Индекс: представления инвестора и администратора.\nИндекс не является инвестиционной рекомендацией.",
         6,
     )
     p.locator("#investorView").click()
@@ -83,24 +84,31 @@ with sync_playwright() as pw:
         "Фотографии помогают узнавать объекты.\nИсточник: платформа «Наследие» ДОМ.РФ.",
         7,
     )
-    p.locator("#object").select_option("2110")
+    p.locator("#catalogSort").select_option("cost")
+    step("Сортировка по условным затратам: сначала меньшие.\nГалочки задают состав объектов для расчёта.", 5)
+    p.locator("#buildingComparison summary").click()
+    p.locator("#buildingTable").scroll_into_view_if_needed()
+    step("Выбранные здания в одной таблице: площадь, индекс, затраты.\nВсе суммы — результат модели, не рыночная оценка.", 6)
+    p.locator("#object").select_option("1574")
     p.locator("#card").scroll_into_view_if_needed()
     step(
         "Карточка: фотография, исходные характеристики и даты.\nФотография не изменяет расчётные показатели.",
         7,
     )
-    p.locator("#card .card-stats").scroll_into_view_if_needed()
+    p.locator("#card .explanation").scroll_into_view_if_needed()
     step(
-        "Вклад пяти групп объясняет итоговый индекс.\nСтоимость и доход — условные предположения НИР2.",
+        "Карточка объясняет отличия от других выбранных зданий.\nСтоимость и доход — условные предположения НИР2.",
         6,
     )
     p.locator("#mapCanvas").scroll_into_view_if_needed()
     p.locator('.okn-marker[title^="Объект 1574:"]').click()
     step(
-        "Интерактивная карта Esri: выбор объекта по метке.\nБез подложки точки и расчёты работают офлайн.",
+        "Карта: выбор метки связан с карточкой и таблицей.\nБез подложки точки и расчёты работают офлайн.",
         8,
     )
     p.locator("#adminView").click()
+    p.locator("#groupMatrix").scroll_into_view_if_needed()
+    step("Администратору: оценки пяти групп и их важность.\nВ тепловой таблице большее число — благоприятнее по модели.", 6)
     p.locator("#scenarioA").click()
     p.locator("#run").click()
     p.wait_for_function(
@@ -131,12 +139,14 @@ with sync_playwright() as pw:
         "Ручной расчёт совпадает с автоматическим.\nОдинаковые параметры и одно расчётное ядро.",
         5,
     )
-    p.locator("#comparisonSection").scroll_into_view_if_needed()
+    p.locator("#scenarioChanges").scroll_into_view_if_needed()
     p.screenshot(path=str(out / "comparison.png"))
     step(
-        "Открытый сценарий сравнивается с базой: индекс и место.\nИзменение приоритетов меняет лидера.",
-        7,
+        "История различает время и параметры запусков.\nИзменение приоритетов меняет лидера.",
+        5,
     )
+    p.locator("#comparison").scroll_into_view_if_needed()
+    step("База → сценарий: изменение индекса и места.\nБаза содержит все четыре объекта, отбор сценария подписан.", 6)
     p.locator("#stability").click()
     p.wait_for_selector("#stabilityResult table")
     p.locator("#stabilityResult").scroll_into_view_if_needed()

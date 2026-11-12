@@ -10,7 +10,7 @@
 
 [Два представления](docs/two-views.md) · [Сравнение объектов и сценариев](docs/comparison-workflow.md)
 
-[Видеодемонстрация прежней версии и субтитры](https://github.com/mfthesun/okn-investment-explorer/releases/tag/v1.0.0) · [Исходное исследование НИР2](https://github.com/mfthesun/nir2-okn-investment-index)
+[Видеодемонстрация и субтитры](https://github.com/mfthesun/okn-investment-explorer/releases/tag/v1.1.0) · [Исходное исследование НИР2](https://github.com/mfthesun/nir2-okn-investment-index)
 
 ## Быстрый запуск
 
@@ -117,7 +117,7 @@ python scripts/browser_check.py
 
 ## Демонстрация и сдача
 
-[Короткая демонстрация](docs/video-demo.md) с русскими субтитрами, без звука. MP4 и SRT доступны в релизе v1.0.0. Публичный веб-деплой не выполняется: репозиторий содержит приложение для локального запуска.
+[Короткая демонстрация](docs/video-demo.md) с русскими субтитрами, без звука. MP4 и SRT доступны в релизе v1.1.0. Публичный веб-деплой не выполняется: репозиторий содержит приложение для локального запуска.
 
 ## Лицензия и публикация
 
