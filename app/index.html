@@ -7,34 +7,51 @@
     <link rel="stylesheet" href="/vendor/leaflet.css" />
     <link rel="stylesheet" href="/style.css" />
   </head>
-  <body>
+  <body data-view="investor">
     <header>
       <a class="brand" href="/">ОКН<span>.Индекс</span></a
-      ><span>НИР2 → эксперимент НИР3</span
-      ><span class="badge">Расчёты локально · карта онлайн/офлайн</span>
+      ><nav class="view-switch" aria-label="Представление приложения">
+        <button id="investorView" aria-pressed="true">Инвестору</button>
+        <button id="adminView" aria-pressed="false">Администратору</button>
+      </nav><span class="badge">4 объекта · Санкт-Петербург</span>
     </header>
     <main>
       <section class="intro">
-        <div>
-          <p class="eyebrow">ПРАКТИКА 03 / ЦИФРОВАЯ УРБАНИСТИКА</p>
-          <h1>Сравнивать объекты.<br />Понимать различия.</h1>
-          <p>
-            Четыре объекта культурного наследия Санкт-Петербурга.<br />От
-            исходных данных — к объяснимому относительному рейтингу.
-          </p>
+        <div class="intro-copy">
+          <p class="eyebrow" id="viewEyebrow">НАСЛЕДИЕ САНКТ-ПЕТЕРБУРГА</p>
+          <h1 id="viewTitle">Увидеть потенциал.<br>Понять условия.</h1>
+          <p id="viewDescription">Сравните четыре исторических здания: состояние, ограничения и условные затраты на восстановление. Выберите, что стоит изучить подробнее.</p>
+          <a class="hero-link" href="#catalogSection">Перейти к объектам →</a>
         </div>
-        <aside class="notice">
-          ИИП — результат модели, а не прогноз доходности или инвестиционная
-          рекомендация. Стоимость и доход условны. Показатель поддержки 3.5
-          воспроизводит допущение НИР2 и не подтверждает доступность программы
-          сегодня.
-        </aside>
+        <figure class="hero-photo investor-only">
+          <img src="/photos/2110.webp" alt="Дом жилой ансамбля Дача Фаберже" width="1920" height="1280">
+          <figcaption>Дача Фаберже · фото: <a href="https://наследие.дом.рф/" target="_blank" rel="noopener">платформа «Наследие» ДОМ.РФ</a></figcaption>
+        </figure>
       </section>
+      <ol class="journey" aria-label="Как пользоваться">
+        <li><strong>01 · Выберите объекты</strong><span>Откройте фотографии и отметьте здания для сравнения.</span></li>
+        <li><strong>02 · Задайте ограничения</strong><span>Укажите площадь и предел затрат. Нажмите «Рассчитать».</span></li>
+        <li><strong>03 · Сравните результат</strong><span>Изучите оценки и причины различий, затем проверьте документы объекта.</span></li>
+      </ol>
+      <nav class="section-nav" aria-label="Разделы"><a href="#catalogSection">Объекты</a><a href="#mapSection">Карта</a><a href="#guide">Как считается</a></nav>
+      <details class="guide" id="guide">
+        <summary>Что означают оценки и суммы?</summary>
+        <div class="guide-grid">
+          <p><strong>Индекс от 0 до 1</strong>Индекс инвестиционной привлекательности (ИИП) объединяет 21 показатель в пяти группах. Больше — благоприятнее по принятым допущениям. 0,6 не означает доходность 60%.</p>
+          <p><strong>Затраты на восстановление</strong>CAPEX — условный объём капитальных затрат: площадь × стоимость работ с поправками модели. Это не цена покупки и не смета подрядчика.</p>
+          <p><strong>Окупаемость в годах</strong>PP — затраты, разделённые на условный годовой доход. Модель не учитывает операционные расходы и изменение стоимости денег во времени.</p>
+        </div>
+        <p>Сценарий — набор предположений о стоимости, доходе и важности критериев. «Базовый расчёт» воспроизводит исходные настройки исследования; администратор может менять их и сравнивать результаты. Оба представления используют один расчёт и одни данные.</p>
+      </details>
+      <aside class="notice">Учебная модель для предварительного сравнения, не прогноз доходности. Данные не обновляются автоматически; стоимость и доход условны. Предложения о продаже и доступность мер поддержки не проверены.</aside>
+      <p class="admin-only hint">Администратор — представление для анализа модели. Переключатель не разграничивает права доступа.</p>
+      <div id="resultContext" class="result-context" role="status"></div>
       <div id="error" role="alert" hidden></div>
       <div id="status" role="status" aria-live="polite"></div>
       <div class="layout">
         <aside class="panel controls">
-          <h2>Параметры сценария</h2>
+          <h2><span class="investor-only">Ваши ограничения</span><span class="admin-only">Параметры сценария</span></h2>
+          <div class="admin-only">
           <label
             >Название<input
               id="name"
@@ -42,8 +59,8 @@
               maxlength="120" /></label
           ><label
             >Режим<select id="mode">
-              <option value="nir2">Воспроизведение НИР2</option>
-              <option value="experiment">Экспериментальный профиль</option>
+              <option value="nir2">Базовый расчёт</option>
+              <option value="experiment">Свой сценарий</option>
             </select></label
           >
           <label
@@ -68,18 +85,19 @@
             окупаемости.
           </p>
           <details open>
-            <summary>Веса групп · сумма = 1</summary>
+            <summary>Важность групп · сумма = 1</summary><p class="hint">Вес задаёт влияние группы на индекс: 0,35 = 35%. Увеличивая один вес, уменьшите другие, чтобы сумма осталась равной 1.</p>
             <div id="weights"></div>
             <p id="weightSum" class="hint"></p>
           </details>
-          <details>
-            <summary>Пользовательские ограничения</summary>
+          </div>
+          <details open>
+            <summary>Площадь и затраты</summary>
             <p class="hint">
-              Личные параметры отбора, не готовый профиль малого или крупного
-              инвестора.
+              Оставьте пределы пустыми, чтобы не ограничивать выбор.
+              Изменения применяются после расчёта.
             </p>
             <label
-              >Предел CAPEX, млн ₽ (необязательно)<input
+              >Затраты до, млн ₽ (необязательно)<input
                 id="budget"
                 type="number"
                 min="0" /></label
@@ -96,26 +114,27 @@
                 min="0"
             /></label>
           </details>
+          <details class="investor-only"><summary>Допущения следующего расчёта</summary><p id="draftContext" class="hint"></p></details>
           <button id="run" class="primary">Рассчитать и сохранить</button
-          ><button id="auto">Ранжировать выбранные объекты</button
-          ><button id="reset">Сбросить к базе</button>
-          <hr />
-          <h3>Демонстрационные сценарии</h3>
+          ><button id="auto" class="admin-only">Ранжировать выбранные объекты</button
+          ><button id="reset">Вернуть базовый расчёт</button>
+          <div class="admin-only"><hr />
+          <h3>Проверить «что, если»</h3>
           <p class="hint">
-            Обоснованы до поиска. Выбор кнопки только заполняет параметры;
+            Сравните два заранее заданных варианта. Кнопка заполняет параметры;
             расчет — отдельным действием.
           </p>
           <button id="scenarioA">А · стоимость ×1,5</button
           ><button id="scenarioB">Б · приоритет правовых рисков</button>
           <p class="hint">
-            А: проверка превышения условной стоимости.<br />Б: перенос 0,15 веса
-            из G1 в G2. Это предпочтение пользователя, не экспертный норматив.
-          </p>
+            А: проверка превышения условной стоимости.<br />Б: важность правовых условий растёт с 25% до 40%,
+            а состояния здания снижается с 35% до 20%. Это предпочтение пользователя.
+          </p></div>
         </aside>
         <div class="content">
-          <section class="panel">
+          <section class="panel" id="catalogSection">
             <div class="section-title">
-              <h2>Каталог и рейтинг</h2>
+              <h2>Объекты для сравнения</h2>
               <span class="badge">4 пилотных объекта</span>
             </div>
             <div class="toolbar">
@@ -135,16 +154,27 @@
               Поиск скрывает строки каталога, но не снимает выбор. Отмеченные
               объекты входят в расчет.
             </p>
+            <div class="toolbar"><label>Сортировать<select id="catalogSort"><option value="index">По индексу: сначала выше</option><option value="cost">По затратам: сначала меньше</option><option value="area">По площади: сначала меньше</option></select></label><p id="selectionCount" role="status"></p></div>
             <div id="catalog"></div>
+            <details id="buildingComparison"><summary>Сравнить выбранные здания</summary><p class="hint">Характеристики выбранных зданий и результаты последнего расчёта. «—» означает отсутствие результата в этом расчёте. Для обновления нажмите «Рассчитать».</p><div id="buildingTable" class="scroll"></div></details>
             <p class="photo-source hint">
               Источник фотографий:
               <a href="https://наследие.дом.рф/" target="_blank" rel="noopener"
                 >платформа «Наследие» ДОМ.РФ</a
               >.
             </p>
-            <div id="metrics" class="metrics"></div>
+            <div id="metrics" class="metrics admin-only"></div>
             <p id="criterion"></p>
-            <div id="ranking" class="scroll"></div>
+            <div class="admin-only">
+              <h3>Рейтинг выбранных объектов</h3>
+              <p class="hint">Индекс от 0 до 1. Выше — благоприятнее по модели. Нажмите на название, чтобы открыть карточку.</p>
+              <div id="rankChart"></div>
+              <details open><summary>Точные значения и затраты — таблица</summary><div id="ranking" class="scroll"></div></details>
+              <h3>За счёт чего различаются объекты</h3>
+              <p class="hint">Оценки пяти групп до умножения на вес. Шкала 0–1: 0 — менее благоприятно, 1 — более благоприятно. Темнее — выше оценка; число в ячейке показывает точное значение.</p>
+              <div id="groupMatrix" class="scroll"></div>
+              <p class="hint">Источник: сохранённые данные исследования, общий срез не датирован. Даты документов и источники — в карточках.</p>
+            </div>
             <p id="excluded"></p>
             <div class="toolbar">
               <button id="json">Экспорт запуска JSON</button
@@ -157,16 +187,16 @@
               <select id="object" aria-label="Объект для карточки"></select>
             </div>
             <div id="card"></div>
-            <button id="manual">Проверить ручным расчетом</button>
-            <p id="manualResult" role="status"></p>
+            <button id="manual" class="admin-only">Проверить ручным расчетом</button>
+            <p id="manualResult" class="admin-only" role="status"></p>
           </section>
-          <section class="panel">
+          <section class="panel" id="mapSection">
             <div class="section-title">
               <h2>Расположение объектов</h2>
               <select id="mapMode" aria-label="Режим карты">
-                <option value="scenario">Сценарий</option>
-                <option value="base">База</option>
-                <option value="delta">Изменение</option>
+                <option value="scenario">Текущий расчёт</option>
+                <option value="base">Базовый расчёт</option>
+                <option value="delta">Разница с базовым расчётом</option>
               </select>
             </div>
             <div class="toolbar">
@@ -191,25 +221,25 @@
               офлайн. Координаты из сохраненной реестровой выгрузки;
               сопоставлены по ЕГРОКН и проверены на допустимый диапазон.
               Геодезическая точность не подтверждена. Источник:
-              data/raw/dataset.xlsx, срез НИР2.
+              сохранённая реестровая выгрузка (data/raw/dataset.xlsx).
             </p>
           </section>
-          <section class="panel" id="comparisonSection">
+          <section class="panel admin-only" id="comparisonSection">
             <h2>Сохраненные сценарии</h2>
-            <p class="hint">
-              Сравниваются значения одного объекта в разных запусках. «—»
-              означает исключение, а не нулевой индекс. Первые 8 выбранных
-              запусков.
-            </p>
-            <div id="saved"></div>
+            <p class="hint">База — исходные параметры и все четыре здания. Сценарий — открытый запуск с его отбором. Изменение места может зависеть и от состава выборки. «—» означает отсутствие результата, не ноль.</p>
+            <p id="scenarioChanges"></p>
+            <h3>Последние запуски</h3><div id="saved"></div>
+            <details><summary>Вся история запусков</summary><div id="olderRuns"></div></details>
             <div id="comparison" class="scroll"></div>
-            <div id="comparisonChart"></div>
+            <p class="hint">Длина полос — индекс, от 0 (слева) до 1 (справа). Подписи содержат название сценария и точное значение.</p><div id="comparisonChart"></div>
           </section>
-          <section class="panel">
+          <section class="panel admin-only">
             <h2>Устойчивость к выбору весов</h2>
             <p>
-              1000 возмущений весов на ±25% с нормированием суммы к 1. Зерно
-              20261103. Исходные характеристики и локальные веса постоянны.
+              Сохраняется ли лидер, если изменить важность критериев? Проверяем
+              1000 вариантов весов: каждый меняется в пределах ±25%, затем сумма
+              приводится к 1. Проверка относится к базовому расчёту всех четырёх объектов,
+              независимо от текущего отбора. Число 20261103 фиксирует повторяемую последовательность вариантов.
             </p>
             <button id="stability">Запустить эксперимент</button>
             <div id="stabilityResult"></div>
@@ -229,14 +259,15 @@
             </p>
             <p>
               Даты актов указаны в карточках. Точная дата общего среза не
-              задана; давность сведений сохранена как в НИР2, автоматически на
-              сегодня не обновляется. CAPEX не включает проверенную рыночную
-              смету; простой PP не учитывает дисконтирование и операционные
-              расходы.
+              задана; давность сведений сохранена из исходного исследования и
+              автоматически не обновляется. Затраты не являются проверенной
+              рыночной сметой; окупаемость не учитывает расходы и изменение
+              стоимости денег во времени.
             </p>
             <p>
-              Профили инвесторов, функции приспособления, проверка актуальных
-              льгот и ретроспективная валидация — дальнейшая работа НИР3.
+              Следующий шаг перед решением: проверить актуальное состояние здания,
+              права и обременения, допустимое использование и смету работ.
+              Интерфейс не подтверждает, что объект доступен для приобретения.
             </p>
             <details>
               <summary>Версии и воспроизводимость</summary>

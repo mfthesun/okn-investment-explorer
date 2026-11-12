@@ -1,5 +1,20 @@
 // Подложка отделена от локальных данных и расчетов. Leaflet загружается локально.
 let locationMap, objectMarkers, esriLayer, tileTimer;
+const markersById = {};
+function highlightObject() {
+  const id = $("object").value;
+  document.querySelectorAll("[data-object-row], #ranking tr[data-id]").forEach(el => el.classList.toggle("active-object", (el.dataset.objectRow || el.dataset.id) === id));
+  document.querySelectorAll(".catalog-card").forEach(el => el.classList.toggle("active-object", el.querySelector("[data-object]").dataset.object === id));
+  for (const [key, marker] of Object.entries(markersById)) marker.getElement()?.classList.toggle("active-marker", key === id);
+}
+function showObjectOnMap() {
+  const marker = markersById[$("object").value];
+  if (!marker) return;
+  $("mapSection").scrollIntoView({behavior: reducedMotion() ? "instant" : "smooth", block: "start"});
+  locationMap.setView(marker.getLatLng(), 15, {animate: !reducedMotion()});
+  marker.openPopup();
+  marker.getElement()?.focus({preventScroll:true});
+}
 const esriCredits =
   "Sources: Esri, HERE, Garmin, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), © OpenStreetMap contributors, and the GIS User Community";
 function fitObjects() {
@@ -48,7 +63,7 @@ function setBasemap() {
     clearTimeout(tileTimer);
     $("mapStatus").textContent = errors
       ? "Часть подложки недоступна; точки и расчеты сохранены."
-      : "Esri · онлайн. Координаты объектов и расчетные значения — из локальных данных НИР2.";
+      : "Esri · онлайн. Координаты объектов и расчетные значения — из сохранённых данных исследования.";
   });
   layer.on("tileerror", () => {
     if (esriLayer !== layer) return;
@@ -123,16 +138,18 @@ function drawMap() {
       offset: [0, o.kgiop_id === "490" ? 10 : -10],
     });
     marker.bindPopup(
-      `<img class="popup-photo" src="/photos/${o.kgiop_id}.webp" alt="${esc(o.name)}"><small class="popup-source">Фото: ${photoCredit()}</small><strong>${esc(o.name)}</strong><br>${esc(o.address)}<br>${mode === "delta" ? "Изменение ИИП" : mode === "base" ? "Базовый ИИП" : "ИИП сценария"}: ${fmt(value)}<br>${r ? "Полный набор показателей" : "Исключен: " + esc(current.excluded.find((e) => e.id === o.kgiop_id)?.reason || "не выбран")}`,
+      `<img class="popup-photo" src="/photos/${o.kgiop_id}.webp" alt="${esc(o.name)}"><small class="popup-source">Фото: ${photoCredit()}</small><strong>${esc(o.name)}</strong><br>${esc(o.address)}<br>${mode === "delta" ? "Разница индекса с базой" : mode === "base" ? "Базовый индекс" : "Индекс текущего расчёта"}: ${fmt(value)}<br>${r ? "Полный набор показателей" : "Исключен: " + esc(current.excluded.find((e) => e.id === o.kgiop_id)?.reason || "не выбран")}`,
     );
     marker.on("click", () => {
       $("object").value = o.kgiop_id;
       drawCard();
     });
     marker.addTo(objectMarkers);
+    markersById[o.kgiop_id] = marker;
   }
+  highlightObject();
   $("mapLegend").textContent =
-    `Метка: номер КГИОП · ${mode === "delta" ? "изменение ИИП; зеленый — рост, терракотовый — снижение" : mode === "base" ? "базовый ИИП" : "ИИП сценария"}. Серый — исключен. Без координат: ${
+    `Метка: учётный номер объекта · ${mode === "delta" ? "разница индекса с базой; зеленый — рост, терракотовый — снижение" : mode === "base" ? "базовый индекс" : "Индекс текущего расчёта"}. Серый — исключен. Без координат: ${
       catalog.objects
         .filter((o) => !pts[o.kgiop_id])
         .map((o) => o.kgiop_id)

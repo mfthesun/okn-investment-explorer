@@ -53,6 +53,7 @@ with sync_playwright() as pw:
     start = time.monotonic()
     p = c.new_page()
     p.goto(url)
+    p.locator("#adminView").click()
     p.wait_for_selector("#ranking tbody tr")
 
     def step(caption, seconds):
@@ -65,13 +66,15 @@ with sync_playwright() as pw:
 
     p.locator("#reset").click()
     p.wait_for_function(
-        'document.querySelector("#status").textContent.includes("Сохранено: База")'
+        'document.querySelector("#status").textContent.includes("Сохранено: Базовый")'
     )
+    p.locator("#investorView").click()
     p.evaluate("window.scrollTo(0,0)")
     step(
-        "ОКН.Индекс: четыре объекта, объяснимый рейтинг.\nИндекс не является инвестиционной рекомендацией.",
+        "ОКН.Индекс: представления инвестора и администратора.\nИндекс не является инвестиционной рекомендацией.",
         6,
     )
+    p.locator("#investorView").click()
     p.locator("#catalog").scroll_into_view_if_needed()
     p.wait_for_function(
         'Array.from(document.querySelectorAll("#catalog img")).every(i=>i.naturalWidth>0)'
@@ -81,23 +84,31 @@ with sync_playwright() as pw:
         "Фотографии помогают узнавать объекты.\nИсточник: платформа «Наследие» ДОМ.РФ.",
         7,
     )
-    p.locator("#object").select_option("2110")
+    p.locator("#catalogSort").select_option("cost")
+    step("Сортировка по условным затратам: сначала меньшие.\nГалочки задают состав объектов для расчёта.", 5)
+    p.locator("#buildingComparison summary").click()
+    p.locator("#buildingTable").scroll_into_view_if_needed()
+    step("Выбранные здания в одной таблице: площадь, индекс, затраты.\nВсе суммы — результат модели, не рыночная оценка.", 6)
+    p.locator("#object").select_option("1574")
     p.locator("#card").scroll_into_view_if_needed()
     step(
         "Карточка: фотография, исходные характеристики и даты.\nФотография не изменяет расчётные показатели.",
         7,
     )
-    p.locator("#card .card-stats").scroll_into_view_if_needed()
+    p.locator("#card .explanation").scroll_into_view_if_needed()
     step(
-        "Вклад пяти групп объясняет итоговый индекс.\nСтоимость и доход — условные предположения НИР2.",
+        "Карточка объясняет отличия от других выбранных зданий.\nСтоимость и доход — условные предположения НИР2.",
         6,
     )
     p.locator("#mapCanvas").scroll_into_view_if_needed()
     p.locator('.okn-marker[title^="Объект 1574:"]').click()
     step(
-        "Интерактивная карта Esri: выбор объекта по метке.\nБез подложки точки и расчёты работают офлайн.",
+        "Карта: выбор метки связан с карточкой и таблицей.\nБез подложки точки и расчёты работают офлайн.",
         8,
     )
+    p.locator("#adminView").click()
+    p.locator("#groupMatrix").scroll_into_view_if_needed()
+    step("Администратору: оценки пяти групп и их важность.\nВ тепловой таблице большее число — благоприятнее по модели.", 6)
     p.locator("#scenarioA").click()
     p.locator("#run").click()
     p.wait_for_function(
@@ -128,16 +139,14 @@ with sync_playwright() as pw:
         "Ручной расчёт совпадает с автоматическим.\nОдинаковые параметры и одно расчётное ядро.",
         5,
     )
-    boxes = p.locator("#saved input")
-    n = boxes.count()
-    for i in range(n):
-        boxes.nth(i).set_checked(i >= n - 3)
-    p.locator("#comparisonSection").scroll_into_view_if_needed()
+    p.locator("#scenarioChanges").scroll_into_view_if_needed()
     p.screenshot(path=str(out / "comparison.png"))
     step(
-        "База и два независимых сценария — в одной таблице.\nИзменение приоритетов меняет лидера.",
-        7,
+        "История различает время и параметры запусков.\nИзменение приоритетов меняет лидера.",
+        5,
     )
+    p.locator("#comparison").scroll_into_view_if_needed()
+    step("База → сценарий: изменение индекса и места.\nБаза содержит все четыре объекта, отбор сценария подписан.", 6)
     p.locator("#stability").click()
     p.wait_for_selector("#stabilityResult table")
     p.locator("#stabilityResult").scroll_into_view_if_needed()
@@ -151,7 +160,7 @@ with sync_playwright() as pw:
     p.locator("#csv").click()
     p.locator("#reset").click()
     p.wait_for_function(
-        'document.querySelector("#status").textContent.includes("Сохранено: База")'
+        'document.querySelector("#status").textContent.includes("Сохранено: Базовый")'
     )
     p.locator("#ranking").scroll_into_view_if_needed()
     step(
@@ -164,6 +173,7 @@ with sync_playwright() as pw:
         6,
     )
     p.goto(url)
+    p.locator("#adminView").click()
     p.wait_for_selector("#ranking tbody tr")
     p.locator("#provenance").evaluate('e=>e.closest("section").scrollIntoView()')
     step(
