@@ -51,6 +51,8 @@ class Handler(BaseHTTPRequestHandler):
                 (ROOT / "app/photos" / photo_files[route]).read_bytes(),
                 kind="image/webp",
             )
+        if route == "/api/baseline":
+            return self.send(scenarios.run(scenarios.defaults()))
         if route == "/api/catalog":
             return self.send(
                 {

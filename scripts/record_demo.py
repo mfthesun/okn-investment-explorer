@@ -131,14 +131,10 @@ with sync_playwright() as pw:
         "Ручной расчёт совпадает с автоматическим.\nОдинаковые параметры и одно расчётное ядро.",
         5,
     )
-    boxes = p.locator("#saved input")
-    n = boxes.count()
-    for i in range(n):
-        boxes.nth(i).set_checked(i >= n - 3)
     p.locator("#comparisonSection").scroll_into_view_if_needed()
     p.screenshot(path=str(out / "comparison.png"))
     step(
-        "База и два независимых сценария — в одной таблице.\nИзменение приоритетов меняет лидера.",
+        "Открытый сценарий сравнивается с базой: индекс и место.\nИзменение приоритетов меняет лидера.",
         7,
     )
     p.locator("#stability").click()

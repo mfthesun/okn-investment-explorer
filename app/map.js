@@ -1,5 +1,20 @@
 // Подложка отделена от локальных данных и расчетов. Leaflet загружается локально.
 let locationMap, objectMarkers, esriLayer, tileTimer;
+const markersById = {};
+function highlightObject() {
+  const id = $("object").value;
+  document.querySelectorAll("[data-object-row], #ranking tr[data-id]").forEach(el => el.classList.toggle("active-object", (el.dataset.objectRow || el.dataset.id) === id));
+  document.querySelectorAll(".catalog-card").forEach(el => el.classList.toggle("active-object", el.querySelector("[data-object]").dataset.object === id));
+  for (const [key, marker] of Object.entries(markersById)) marker.getElement()?.classList.toggle("active-marker", key === id);
+}
+function showObjectOnMap() {
+  const marker = markersById[$("object").value];
+  if (!marker) return;
+  $("mapSection").scrollIntoView({behavior: reducedMotion() ? "instant" : "smooth", block: "start"});
+  locationMap.setView(marker.getLatLng(), 15, {animate: !reducedMotion()});
+  marker.openPopup();
+  marker.getElement()?.focus({preventScroll:true});
+}
 const esriCredits =
   "Sources: Esri, HERE, Garmin, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), © OpenStreetMap contributors, and the GIS User Community";
 function fitObjects() {
@@ -130,7 +145,9 @@ function drawMap() {
       drawCard();
     });
     marker.addTo(objectMarkers);
+    markersById[o.kgiop_id] = marker;
   }
+  highlightObject();
   $("mapLegend").textContent =
     `Метка: учётный номер объекта · ${mode === "delta" ? "разница индекса с базой; зеленый — рост, терракотовый — снижение" : mode === "base" ? "базовый индекс" : "Индекс текущего расчёта"}. Серый — исключен. Без координат: ${
       catalog.objects
